@@ -1,3 +1,7 @@
+/**
+ * main.js - ITP Nitro Racer (HUD Lateral)
+ * Christopher Rodríguez Pérez
+ */
 (() => {
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
@@ -80,14 +84,13 @@
     }
 
     function spawnEnemy() {
-        // Carriles ajustados al nuevo ancho de canvas (500px)
         const lanes = [canvas.width * 0.25, canvas.width * 0.42, canvas.width * 0.58, canvas.width * 0.75];
-        if (Math.random() < 0.04 + (level * 0.006)) {
+        if (Math.random() < 0.045 + (level * 0.007)) {
             enemies.push({
                 x: lanes[Math.floor(Math.random() * 4)] - 20,
                 y: -100,
                 w: 30, h: 65,
-                speed: 6.5 + (level * 1.0),
+                speed: 7 + (level * 1.1), // Un poco más veloz desde el inicio
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
@@ -97,11 +100,10 @@
         if (!gameActive) return;
         animationId = requestAnimationFrame(animate);
         
-        roadOffset += 8 + level;
+        roadOffset += 9 + level;
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
-        // Vidas dibujadas con estilo
         ctx.fillStyle = "white";
         ctx.font = "bold 20px Arial";
         ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 35);
@@ -136,15 +138,14 @@
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         let mX = e.clientX - rect.left;
-        // Límites estrictos para que no toque el pasto en el nuevo ancho
         if (mX < 110) mX = 110; 
         if (mX > 390) mX = 390;
         player.x = mX;
     });
 
     btnStart.addEventListener("click", () => {
-        canvas.width = 500; // Canvas más ancho
-        canvas.height = 700; // Canvas más alto
+        canvas.width = 500; 
+        canvas.height = 700;
         btnStart.style.display = "none";
         gameActive = true;
         initLevel();

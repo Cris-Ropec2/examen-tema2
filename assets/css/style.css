@@ -7,25 +7,30 @@ body {
     flex-direction: column;
 }
 
-/* HUD Contenedor de Marcadores Divertidos */
-.hud-container {
+/* Marcadores en Columna al Lado Izquierdo */
+.hud-sidebar {
     position: absolute;
-    width: 100%;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%); /* Centrado vertical */
     display: flex;
-    justify-content: space-around;
-    top: 70px;
+    flex-direction: column;
+    gap: 20px;
     z-index: 10;
     pointer-events: none;
 }
 
 .hud-item {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.85);
     border: 3px solid;
-    padding: 10px 20px;
-    border-radius: 50px;
+    padding: 12px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%; /* Círculos perfectos */
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     box-shadow: 0 0 15px rgba(255,255,255,0.2);
 }
 
@@ -34,23 +39,24 @@ body {
 .score-badge { border-color: #00ff00; color: #00ff00; }
 
 .hud-label { font-size: 0.6rem; font-weight: bold; }
-.hud-value { font-size: 1.5rem; font-family: 'Arial Black', sans-serif; }
+.hud-value { font-size: 1.3rem; font-family: 'Arial Black', sans-serif; }
 
-/* Tarjeta y Canvas Ampliado */
+/* Tarjeta Principal */
 .glass-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
-    width: 98%;
-    max-width: 500px; /* Más ancho para el juego */
+    width: 90%;
+    max-width: 500px;
+    margin-left: 120px; /* Espacio para no chocar con la sidebar */
 }
 
 #game-canvas {
     background: #333;
     border-radius: 15px;
     width: 100%;
-    height: 55vh; /* Aumentamos el alto del canvas */
+    height: 55vh;
     cursor: crosshair; 
     border: 3px solid rgba(255, 255, 255, 0.5);
 }
@@ -61,6 +67,19 @@ body {
 
 @keyframes pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.03); }
+    50% { transform: scale(1.02); }
     100% { transform: scale(1); }
+}
+
+/* Responsividad: Si la pantalla es muy pequeña, los mandamos arriba */
+@media (max-width: 768px) {
+    .hud-sidebar {
+        flex-direction: row;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        justify-content: space-around;
+        transform: none;
+    }
+    .glass-card { margin-left: 0; margin-top: 80px; }
 }
