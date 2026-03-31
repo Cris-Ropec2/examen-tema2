@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITP Nitro Racer | C. Rodríguez</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="icon" type="image/png" href="./assets/img/favicon.png">
+</head>
+<body class="d-flex flex-column">
+    <nav class="navbar navbar-dark bg-dark shadow">
+        <div class="container">
+            <a class="navbar-brand" href="#">ITP Nitro Racer</a>
+            <span class="navbar-text text-white">Christopher Rodríguez Pérez</span>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1 d-flex align-items-center justify-content-center p-2">
+        <div class="glass-card p-3 shadow-lg text-center">
+            <div id="game-ui" class="d-flex justify-content-between mb-2 text-white px-3">
+                <div class="stats-box">Nivel: <span id="ui-level">1</span></div>
+                <div class="stats-box">Tiempo: <span id="ui-timer">03:00</span></div>
+                <div class="stats-box">Puntos: <span id="ui-score">100</span>%</div>
+            </div>
+            
+            <canvas id="game-canvas"></canvas>
+
+            <div class="mt-3 text-white">
+                <p id="high-score-display" class="mb-2 text-warning">Récord Máximo: 0</p>
+                <div class="alert alert-info py-2 small mb-2">
+                    <strong>Instrucciones:</strong> Mueve el auto con el <b>Mouse</b>. 
+                    Esquiva los obstáculos durante 3 min. Si chocas, pierdes una vida. 
+                    ¡Necesitas al menos 60% de puntos para subir de nivel!
+                </div>
+                <button id="btn-start" class="btn btn-primary w-100">Iniciar Carrera</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white text-center py-2 mt-auto">
+        <small>© 2026 - Christopher Rodríguez Pérez | ITP Ingeniería en Sistemas</small>
+    </footer>
+
+    <script src="./assets/js/main.js"></script>
+</body>
+</html>
