@@ -1,7 +1,3 @@
-/**
- * main.js - ITP Nitro Racer (HUD Lateral)
- * Christopher Rodríguez Pérez
- */
 (() => {
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
@@ -21,7 +17,9 @@
         enemyImages.push(img);
     }
 
+    // --- VARIABLES DE ESTADO ---
     let level = 1, lives = 3, timeLeft = 90; 
+    let totalScore = 0; // Puntos acumulados globales
     let gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0;
 
@@ -38,7 +36,7 @@
                 timeLeft--;
                 updateUI();
             } else if (timeLeft <= 0) {
-                checkProgress();
+                processLevelEnd();
             }
         }, 1000);
     }
@@ -48,21 +46,25 @@
         const secs = timeLeft % 60;
         uiTimer.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         uiLevel.innerText = level;
-        uiScore.innerText = ((lives / 3) * 100).toFixed(0);
+        uiScore.innerText = totalScore; // Mostramos el acumulado
     }
 
-    function checkProgress() {
-        if ((lives / 3) * 100 >= 60) {
-            if (level < 10) {
-                level++;
-                alert(`¡Nivel ${level-1} superado!`);
-                initLevel();
-            } else {
-                victory();
-            }
-        } else {
-            alert("Vidas insuficientes para avanzar. Reintentando...");
+    function processLevelEnd() {
+        // Calcular puntos del nivel actual: 3 vidas = 100, 2 = 67, 1 = 33
+        let levelPoints = 0;
+        if (lives === 3) levelPoints = 100;
+        else if (lives === 2) levelPoints = 67;
+        else if (lives === 1) levelPoints = 33;
+
+        totalScore += levelPoints; // SUMA ACUMULATIVA
+        updateUI();
+
+        if (level < 8) {
+            level++;
+            alert(`¡Nivel ${level-1} superado! Puntos obtenidos: ${levelPoints}. Total: ${totalScore}`);
             initLevel();
+        } else {
+            victory();
         }
     }
 
@@ -71,13 +73,15 @@
         lives--;
         ctx.fillStyle = "rgba(255, 0, 0, 0.6)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+
         setTimeout(() => {
             if (lives > 0) {
+                // Al chocar, reinicia el nivel actual pero conserva las vidas restantes
                 initLevel();
                 gameActive = true;
                 animate();
             } else {
-                alert("SIN VIDAS. Volviendo al Nivel 1.");
+                alert(`GAME OVER. Te quedaste sin vidas en el Nivel ${level}.\nPuntaje final: ${totalScore}`);
                 location.reload(); 
             }
         }, 500);
@@ -90,7 +94,7 @@
                 x: lanes[Math.floor(Math.random() * 4)] - 20,
                 y: -100,
                 w: 30, h: 65,
-                speed: 7 + (level * 1.1), // Un poco más veloz desde el inicio
+                speed: 7 + (level * 1.1),
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
@@ -132,7 +136,9 @@
         ctx.fillStyle = "gold";
         ctx.textAlign = "center";
         ctx.font = "bold 25px Arial";
-        ctx.fillText("¡ERES EL CAMPEÓN!", canvas.width/2, canvas.height/2 + 80);
+        ctx.fillText("¡ERES EL CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 80);
+        ctx.font = "20px Arial";
+        ctx.fillText(`PUNTAJE TOTAL: ${totalScore} PTS`, canvas.width/2, canvas.height/2 + 115);
     }
 
     canvas.addEventListener('mousemove', (e) => {
@@ -148,6 +154,9 @@
         canvas.height = 700;
         btnStart.style.display = "none";
         gameActive = true;
+        totalScore = 0;
+        level = 1;
+        lives = 3;
         initLevel();
         animate();
     });
