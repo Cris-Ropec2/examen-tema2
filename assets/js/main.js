@@ -7,7 +7,6 @@
     const uiHigh = document.getElementById("high-score-display");
     const btnStart = document.getElementById("btn-start");
 
-    // --- CARGA DE ACTIVOS ---
     const imgPlayer = new Image(); imgPlayer.src = './assets/img/auto-usuario.png';
     const imgPista = new Image(); imgPista.src = './assets/img/pista.jpg';
     const imgPremio = new Image(); imgPremio.src = './assets/img/premio-final.png';
@@ -19,8 +18,7 @@
         enemyImages.push(img);
     }
 
-    // --- VARIABLES DE ESTADO ---
-    let level = 1, lives = 3, timeLeft = 180; 
+    let level = 1, lives = 3, timeLeft = 90; // CAMBIO: 90 segundos = 1:30 min
     let gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0;
     let highScore = localStorage.getItem('nitroHighScore') || 0;
@@ -29,7 +27,7 @@
 
     function initLevel() {
         enemies = [];
-        timeLeft = 180; 
+        timeLeft = 90; // CAMBIO: Duración de nivel reducida
         player.y = canvas.height - 110;
         updateUI();
         if (timerId) clearInterval(timerId);
@@ -86,12 +84,13 @@
 
     function spawnEnemy() {
         const lanes = [canvas.width * 0.22, canvas.width * 0.40, canvas.width * 0.58, canvas.width * 0.77];
-        if (Math.random() < 0.018 + (level * 0.004)) {
+        // CAMBIO: Probabilidad y velocidad aumentadas ligeramente para el nivel 1
+        if (Math.random() < 0.02 + (level * 0.005)) {
             enemies.push({
                 x: lanes[Math.floor(Math.random() * 4)] - 20,
                 y: -100,
-                w: 28, h: 60, // Hitbox optimizada
-                speed: 4 + (level * 0.75),
+                w: 28, h: 60,
+                speed: 5.5 + (level * 0.85), // CAMBIO: Velocidad base aumentada de 4 a 5.5
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
@@ -101,26 +100,21 @@
         if (!gameActive) return;
         animationId = requestAnimationFrame(animate);
         
-        // Carretera infinita
-        roadOffset += 4 + level;
+        roadOffset += 6 + level; // CAMBIO: La pista se mueve un poco más rápido
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
-        // Vidas y HUD
         ctx.fillStyle = "white";
         ctx.font = "bold 16px Arial";
         ctx.fillText("VIDAS: " + "❤️".repeat(lives), 15, 25);
 
-        // Jugador (auto-usuario)
         ctx.drawImage(imgPlayer, player.x - 22, player.y, 45, 85);
 
-        // Obstáculos (autos-estorbo)
         spawnEnemy();
         enemies.forEach((en, index) => {
             en.y += en.speed;
             ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
 
-            // COLISIÓN (Hitbox reducida para justicia)
             if (player.x - 12 < en.x + en.w && player.x + 12 > en.x &&
                 player.y + 10 < en.y + en.h && player.y + 70 > en.y) {
                 handleCollision();
@@ -144,7 +138,7 @@
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         let mX = e.clientX - rect.left;
-        if (mX < 70) mX = 70; // Límites de la pista gris
+        if (mX < 70) mX = 70; 
         if (mX > 330) mX = 330;
         player.x = mX;
     });
