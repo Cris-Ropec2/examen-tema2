@@ -7,7 +7,7 @@
     const uiHigh = document.getElementById("high-score-display");
     const btnStart = document.getElementById("btn-start");
 
-    // Imágenes
+    // --- CARGA DE ACTIVOS ---
     const imgPlayer = new Image(); imgPlayer.src = './assets/img/auto-usuario.png';
     const imgPista = new Image(); imgPista.src = './assets/img/pista.jpg';
     const imgPremio = new Image(); imgPremio.src = './assets/img/premio-final.png';
@@ -19,12 +19,13 @@
         enemyImages.push(img);
     }
 
+    // --- VARIABLES DE ESTADO ---
     let level = 1, lives = 3, timeLeft = 180; 
     let gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0;
     let highScore = localStorage.getItem('nitroHighScore') || 0;
 
-    const player = { x: 200, y: 0, w: 40, h: 80 };
+    const player = { x: 200, y: 0, w: 35, h: 75 };
 
     function initLevel() {
         enemies = [];
@@ -37,7 +38,7 @@
                 timeLeft--;
                 updateUI();
             } else if (timeLeft <= 0) {
-                checkLevelProgression();
+                checkProgress();
             }
         }, 1000);
     }
@@ -48,23 +49,21 @@
         uiTimer.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         uiLevel.innerText = level;
         uiHigh.innerText = `Récord Máximo: Nivel ${highScore}`;
-        let score = (lives / 3) * 100;
-        uiScore.innerText = score.toFixed(1);
+        uiScore.innerText = ((lives / 3) * 100).toFixed(1);
     }
 
-    function checkLevelProgression() {
-        let score = (lives / 3) * 100;
-        if (score >= 60) {
+    function checkProgress() {
+        if ((lives / 3) * 100 >= 60) {
             if (level < 10) {
                 level++;
-                alert(`¡NIVEL ${level-1} SUPERADO!`);
+                alert(`¡Nivel ${level-1} completado!`);
                 initLevel();
             } else {
                 victory();
             }
         } else {
-            alert("Puntuación insuficiente para avanzar. Reintentando nivel.");
-            initLevel(); 
+            alert("Puntos insuficientes. Intenta de nuevo.");
+            initLevel();
         }
     }
 
@@ -73,36 +72,26 @@
         lives--;
         ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         setTimeout(() => {
             if (lives > 0) {
                 initLevel();
                 gameActive = true;
                 animate();
             } else {
-                alert("GAME OVER - Volviendo al Nivel 1.");
-                resetToStart();
+                alert("SIN VIDAS. Reiniciando juego.");
+                location.reload(); 
             }
         }, 500);
     }
 
-    function resetToStart() {
-        gameActive = false;
-        level = 1; lives = 3;
-        cancelAnimationFrame(animationId);
-        clearInterval(timerId);
-        btnStart.style.display = "block";
-    }
-
     function spawnEnemy() {
-        // Carriles limitados a la zona gris de la pista
         const lanes = [canvas.width * 0.22, canvas.width * 0.40, canvas.width * 0.58, canvas.width * 0.77];
-        if (Math.random() < 0.015 + (level * 0.005)) {
+        if (Math.random() < 0.018 + (level * 0.004)) {
             enemies.push({
                 x: lanes[Math.floor(Math.random() * 4)] - 20,
                 y: -100,
-                w: 30, h: 65, // Hitbox lógica reducida
-                speed: 4 + (level * 0.8),
+                w: 28, h: 60, // Hitbox optimizada
+                speed: 4 + (level * 0.75),
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
@@ -112,24 +101,28 @@
         if (!gameActive) return;
         animationId = requestAnimationFrame(animate);
         
-        roadOffset += 5 + level;
+        // Carretera infinita
+        roadOffset += 4 + level;
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
+        // Vidas y HUD
         ctx.fillStyle = "white";
         ctx.font = "bold 16px Arial";
-        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 30);
+        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 15, 25);
 
+        // Jugador (auto-usuario)
         ctx.drawImage(imgPlayer, player.x - 22, player.y, 45, 85);
 
+        // Obstáculos (autos-estorbo)
         spawnEnemy();
         enemies.forEach((en, index) => {
             en.y += en.speed;
-            ctx.drawImage(en.img, en.x - 5, en.y - 10, 45, 85); // Imagen visual
+            ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
 
-            // HITBOX REDUCIDA (Padding de 8px)
-            if (player.x - 15 < en.x + en.w && player.x + 15 > en.x &&
-                player.y + 5 < en.y + en.h && player.y + 75 > en.y) {
+            // COLISIÓN (Hitbox reducida para justicia)
+            if (player.x - 12 < en.x + en.w && player.x + 12 > en.x &&
+                player.y + 10 < en.y + en.h && player.y + 70 > en.y) {
                 handleCollision();
             }
             if (en.y > canvas.height) enemies.splice(index, 1);
@@ -151,14 +144,14 @@
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         let mX = e.clientX - rect.left;
-        // Limitar jugador a la pista gris
-        if (mX < 60) mX = 60;
-        if (mX > 340) mX = 340;
+        if (mX < 70) mX = 70; // Límites de la pista gris
+        if (mX > 330) mX = 330;
         player.x = mX;
     });
 
     btnStart.addEventListener("click", () => {
-        canvas.width = 400; canvas.height = 600;
+        canvas.width = 400; 
+        canvas.height = 600;
         btnStart.style.display = "none";
         gameActive = true;
         initLevel();
