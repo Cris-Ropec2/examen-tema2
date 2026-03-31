@@ -9,9 +9,18 @@
     const uiHigh = document.getElementById("high-score-display");
     const btnStart = document.getElementById("btn-start");
 
-    // Imágenes del juego
-    const imgPlayer = new Image(); imgPlayer.src = './assets/img/favicon.png'; // Usaremos el favicon o una imagen de auto
-    const imgRoad = new Image(); imgRoad.src = './assets/img/esenario.jpg';
+    // --- CARGA DE IMÁGENES ---
+    const imgPlayer = new Image(); imgPlayer.src = './assets/img/auto-usuario.png';
+    const imgPista = new Image(); imgPista.src = './assets/img/pista.jpg';
+    const imgPremio = new Image(); imgPremio.src = './assets/img/premio-final.png';
+    
+    // Arreglo de autos enemigos (estorbos)
+    const enemyImages = [];
+    for(let i=1; i<=4; i++) {
+        let img = new Image();
+        img.src = `./assets/img/auto-estorbo${i}.png`;
+        enemyImages.push(img);
+    }
 
     // Estado del Juego
     let level = 1, lives = 3, timeLeft = 180; 
@@ -19,12 +28,12 @@
     let enemies = [], roadOffset = 0;
     let highScore = localStorage.getItem('nitroHighScore') || 0;
 
-    const player = { x: 0, y: 0, w: 40, h: 70 };
+    const player = { x: 0, y: 0, w: 45, h: 85 };
 
     function initLevel() {
         enemies = [];
-        timeLeft = 180; // 3 minutos por nivel
-        player.y = canvas.height - 100;
+        timeLeft = 180; 
+        player.y = canvas.height - 110;
         updateUI();
         startTimer();
     }
@@ -48,7 +57,6 @@
         uiLevel.innerText = level;
         uiHigh.innerText = `Récord Máximo: ${highScore}`;
         
-        // Regla: Puntos basados en vidas (3=100, 2=66.6, 1=33.3)
         let score = (lives / 3) * 100;
         uiScore.innerText = score.toFixed(1);
     }
@@ -58,13 +66,13 @@
         if (score >= 60) {
             if (level < 10) {
                 level++;
-                alert(`¡NIVEL ${level-1} SUPERADO! Avanzando al siguiente...`);
+                alert(`¡NIVEL ${level-1} SUPERADO!`);
                 initLevel();
             } else {
                 victory();
             }
         } else {
-            alert("Puntuación insuficiente (Menor a 60%). Fin del juego.");
+            alert("Puntuación insuficiente para avanzar.");
             gameOver();
         }
     }
@@ -73,18 +81,17 @@
         gameActive = false;
         lives--;
         
-        // Efecto de choque visual
-        ctx.fillStyle = "rgba(255, 0, 0, 0.6)";
+        // Efecto visual de choque
+        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         setTimeout(() => {
             if (lives > 0) {
-                alert(`¡CHOCASTE! Vidas restantes: ${lives}. Reiniciando nivel ${level}.`);
                 initLevel();
                 gameActive = true;
                 animate();
             } else {
-                alert("HAS PERDIDO TODAS TUS VIDAS. Volviendo al Nivel 1.");
+                alert("GAME OVER - Volviendo al Nivel 1.");
                 gameOver();
             }
         }, 500);
@@ -103,20 +110,18 @@
         gameActive = false;
         clearInterval(timerId);
         if (level > highScore) localStorage.setItem('nitroHighScore', level);
-        alert("¡FELICIDADES HAS COMPLETADO EL JUEGO!");
         drawVictoryScreen();
     }
 
     function spawnEnemy() {
-        // Carretera de 4 carriles
         const lanes = [canvas.width * 0.15, canvas.width * 0.40, canvas.width * 0.65, canvas.width * 0.90];
-        if (Math.random() < 0.01 + (level * 0.005)) {
+        if (Math.random() < 0.015 + (level * 0.005)) {
             enemies.push({
-                x: lanes[Math.floor(Math.random() * 4)] - 20,
+                x: lanes[Math.floor(Math.random() * 4)] - 22,
                 y: -100,
-                w: 40, h: 70,
-                speed: 3 + (level * 1.2), // Más rápido según el nivel
-                color: `hsl(${Math.random() * 360}, 70%, 50%)`
+                w: 45, h: 85,
+                speed: 4 + (level * 0.8),
+                img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
     }
@@ -125,29 +130,27 @@
         if (!gameActive) return;
         animationId = requestAnimationFrame(animate);
         
-        // Fondo con movimiento
-        roadOffset += 4 + level;
-        ctx.drawImage(imgRoad, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
-        ctx.drawImage(imgRoad, 0, roadOffset % canvas.height, canvas.width, canvas.height);
+        // --- DIBUJAR PISTA (FONDO INFINITO) ---
+        roadOffset += 5 + level;
+        ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
+        ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
-        // Dibujar Vidas en el Canvas
+        // Vidas en pantalla
         ctx.fillStyle = "white";
-        ctx.font = "20px Arial";
-        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 30);
+        ctx.font = "bold 18px Arial";
+        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 35);
 
-        // Jugador
-        ctx.fillStyle = "#00fbff";
-        ctx.fillRect(player.x - player.w/2, player.y, player.w, player.h);
+        // --- DIBUJAR AUTO USUARIO ---
+        ctx.drawImage(imgPlayer, player.x - player.w/2, player.y, player.w, player.h);
 
-        // Enemigos
+        // --- DIBUJAR AUTOS ESTORBO ---
         spawnEnemy();
         enemies.forEach((en, index) => {
             en.y += en.speed;
-            ctx.fillStyle = en.color;
-            ctx.fillRect(en.x, en.y, en.w, en.h);
+            ctx.drawImage(en.img, en.x, en.y, en.w, en.h);
 
-            // Hitbox precisa
-            if (player.x - player.w/2 < en.x + en.w && player.x + player.w/2 > en.x &&
+            // Colisión
+            if (player.x - 20 < en.x + en.w && player.x + 20 > en.x &&
                 player.y < en.y + en.h && player.y + player.h > en.y) {
                 handleCollision();
             }
@@ -157,14 +160,14 @@
     }
 
     function drawVictoryScreen() {
-        ctx.fillStyle = "rgba(0,0,0,0.8)";
+        ctx.fillStyle = "rgba(0,0,0,0.85)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(imgPremio, canvas.width/2 - 60, canvas.height/2 - 100, 120, 120);
         ctx.fillStyle = "gold";
         ctx.textAlign = "center";
-        ctx.font = "40px Bold Arial";
-        ctx.fillText("🏆", canvas.width/2, canvas.height/2 - 20);
-        ctx.font = "20px Arial";
-        ctx.fillText("¡CAMPEÓN!", canvas.width/2, canvas.height/2 + 20);
+        ctx.font = "24px Arial";
+        ctx.fillText("¡FELICIDADES!", canvas.width/2, canvas.height/2 + 50);
+        ctx.fillText("HAS COMPLETADO EL JUEGO", canvas.width/2, canvas.height/2 + 85);
     }
 
     canvas.addEventListener('mousemove', (e) => {
