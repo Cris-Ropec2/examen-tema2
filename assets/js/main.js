@@ -1,17 +1,11 @@
-/**
- * main.js - ITP Nitro Racer (Versión Desafío Extremo)
- * Christopher Rodríguez Pérez
- */
 (() => {
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
     const uiLevel = document.getElementById("ui-level");
     const uiTimer = document.getElementById("ui-timer");
     const uiScore = document.getElementById("ui-score");
-    const uiHigh = document.getElementById("high-score-display");
     const btnStart = document.getElementById("btn-start");
 
-    // --- CARGA DE ACTIVOS ---
     const imgPlayer = new Image(); imgPlayer.src = './assets/img/auto-usuario.png';
     const imgPista = new Image(); imgPista.src = './assets/img/pista.jpg';
     const imgPremio = new Image(); imgPremio.src = './assets/img/premio-final.png';
@@ -23,17 +17,15 @@
         enemyImages.push(img);
     }
 
-    // --- VARIABLES DE ESTADO ---
     let level = 1, lives = 3, timeLeft = 90; 
     let gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0;
-    let highScore = localStorage.getItem('nitroHighScore') || 0;
 
-    const player = { x: 200, y: 0, w: 35, h: 75 };
+    const player = { x: 250, y: 0, w: 35, h: 75 };
 
     function initLevel() {
         enemies = [];
-        timeLeft = 90; // 1:30 min
+        timeLeft = 90;
         player.y = canvas.height - 110;
         updateUI();
         if (timerId) clearInterval(timerId);
@@ -52,21 +44,20 @@
         const secs = timeLeft % 60;
         uiTimer.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         uiLevel.innerText = level;
-        uiHigh.innerText = `Récord Máximo: Nivel ${highScore}`;
-        uiScore.innerText = ((lives / 3) * 100).toFixed(1);
+        uiScore.innerText = ((lives / 3) * 100).toFixed(0);
     }
 
     function checkProgress() {
         if ((lives / 3) * 100 >= 60) {
             if (level < 10) {
                 level++;
-                alert(`¡Nivel ${level-1} completado!`);
+                alert(`¡Nivel ${level-1} superado!`);
                 initLevel();
             } else {
                 victory();
             }
         } else {
-            alert("Puntos insuficientes (Menor a 60%). Reintentando nivel...");
+            alert("Vidas insuficientes para avanzar. Reintentando...");
             initLevel();
         }
     }
@@ -82,23 +73,21 @@
                 gameActive = true;
                 animate();
             } else {
-                alert("SIN VIDAS. Reiniciando desde el Nivel 1.");
+                alert("SIN VIDAS. Volviendo al Nivel 1.");
                 location.reload(); 
             }
         }, 500);
     }
 
     function spawnEnemy() {
-        // AJUSTE: Carriles más cerrados para que no toquen el pasto lateral
+        // Carriles ajustados al nuevo ancho de canvas (500px)
         const lanes = [canvas.width * 0.25, canvas.width * 0.42, canvas.width * 0.58, canvas.width * 0.75];
-        
-        // AJUSTE: Probabilidad aumentada significativamente (de 0.02 a 0.04 base)
         if (Math.random() < 0.04 + (level * 0.006)) {
             enemies.push({
-                x: lanes[Math.floor(Math.random() * 4)] - 18,
+                x: lanes[Math.floor(Math.random() * 4)] - 20,
                 y: -100,
-                w: 28, h: 60, // Hitbox optimizada
-                speed: 6 + (level * 0.9), // Velocidad base más alta
+                w: 30, h: 65,
+                speed: 6.5 + (level * 1.0),
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
@@ -108,16 +97,15 @@
         if (!gameActive) return;
         animationId = requestAnimationFrame(animate);
         
-        roadOffset += 7 + level; // Pista más veloz
+        roadOffset += 8 + level;
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
-        // Vidas y HUD
+        // Vidas dibujadas con estilo
         ctx.fillStyle = "white";
-        ctx.font = "bold 16px Arial";
-        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 15, 25);
+        ctx.font = "bold 20px Arial";
+        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 35);
 
-        // Jugador (auto-usuario)
         ctx.drawImage(imgPlayer, player.x - 22, player.y, 45, 85);
 
         spawnEnemy();
@@ -125,8 +113,7 @@
             en.y += en.speed;
             ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
 
-            // COLISIÓN (Hitbox ultra-precisa)
-            if (player.x - 12 < en.x + en.w && player.x + 12 > en.x &&
+            if (player.x - 15 < en.x + en.w && player.x + 15 > en.x &&
                 player.y + 10 < en.y + en.h && player.y + 70 > en.y) {
                 handleCollision();
             }
@@ -137,28 +124,27 @@
     function victory() {
         gameActive = false;
         clearInterval(timerId);
-        if (level > highScore) localStorage.setItem('nitroHighScore', level);
         ctx.fillStyle = "rgba(0,0,0,0.85)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(imgPremio, canvas.width/2 - 50, canvas.height/2 - 80, 100, 100);
+        ctx.drawImage(imgPremio, canvas.width/2 - 75, canvas.height/2 - 100, 150, 150);
         ctx.fillStyle = "gold";
         ctx.textAlign = "center";
-        ctx.fillText("¡COMPLETASTE EL JUEGO!", canvas.width/2, canvas.height/2 + 50);
+        ctx.font = "bold 25px Arial";
+        ctx.fillText("¡ERES EL CAMPEÓN!", canvas.width/2, canvas.height/2 + 80);
     }
 
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         let mX = e.clientX - rect.left;
-        
-        // AJUSTE: Límites de pista más estrictos (No toca el pasto)
-        if (mX < 95) mX = 95; 
-        if (mX > 305) mX = 305;
+        // Límites estrictos para que no toque el pasto en el nuevo ancho
+        if (mX < 110) mX = 110; 
+        if (mX > 390) mX = 390;
         player.x = mX;
     });
 
     btnStart.addEventListener("click", () => {
-        canvas.width = 400; 
-        canvas.height = 600;
+        canvas.width = 500; // Canvas más ancho
+        canvas.height = 700; // Canvas más alto
         btnStart.style.display = "none";
         gameActive = true;
         initLevel();

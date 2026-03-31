@@ -9,39 +9,47 @@
     <link rel="icon" type="image/png" href="./assets/img/favicon.png">
 </head>
 <body class="d-flex flex-column">
+
+    <div class="hud-container">
+        <div class="hud-item level-badge">
+            <span class="hud-label">NIVEL</span>
+            <span id="ui-level" class="hud-value">1</span>
+        </div>
+        <div class="hud-item timer-badge">
+            <span class="hud-label">TIEMPO</span>
+            <span id="ui-timer" class="hud-value">01:30</span>
+        </div>
+        <div class="hud-item score-badge">
+            <span id="ui-score" class="hud-value">100</span>
+            <span class="hud-label">% PUNTOS</span>
+        </div>
+    </div>
+
     <nav class="navbar navbar-dark bg-dark shadow">
         <div class="container">
             <a class="navbar-brand" href="#">ITP Nitro Racer</a>
-            <span class="navbar-text text-white">Christopher Rodríguez Pérez</span>
+            <span class="navbar-text text-white">Cristopher Rodríguez Pérez</span>
         </div>
     </nav>
 
     <main class="flex-grow-1 d-flex align-items-center justify-content-center p-2">
-        <div class="glass-card p-3 shadow-lg text-center">
-            <div id="game-ui" class="d-flex justify-content-between mb-2 text-white px-3">
-                <div class="stats-box">Nivel: <span id="ui-level">1</span></div>
-                <div class="stats-box">Tiempo: <span id="ui-timer">01:30</span></div>
-                <div class="stats-box">Puntos: <span id="ui-score">100</span>%</div>
-            </div>
+        <div class="glass-card p-2 shadow-lg text-center">
             
-            <button id="btn-start" class="btn btn-primary w-100 mb-2 py-2 fw-bold">INICIAR CARRERA</button>
+            <button id="btn-start" class="btn btn-warning btn-lg w-100 mb-2 fw-bold pulse-animation">¡INICIAR CARRERA!</button>
 
             <canvas id="game-canvas"></canvas>
 
-            <div class="mt-2 text-white">
-                <p id="high-score-display" class="mb-1 text-warning small">Récord Máximo: Nivel 0</p>
-                <div class="alert alert-info py-2 px-3 small mb-0 text-start" style="font-size: 0.8rem;">
-                    <strong>Guía rápida:</strong><br>
-                    1. Esquiva los autos usando el <b>Mouse</b>.<br>
-                    2. Sobrevive <b>1:30 min</b>. Si chocas, pierdes una vida.<br>
-                    3. Necesitas 60% de puntos para subir de nivel.
+            <div class="instructions-panel mt-2">
+                <div class="alert alert-light py-1 px-3 small mb-0 text-start">
+                    <strong>GUÍA RÁPIDA:</strong> Esquiva con el <b>Mouse</b>. Sobrevive <b>1:30 min</b>. 
+                    ¡Necesitas 60% para avanzar!
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="bg-dark text-white text-center py-2 mt-auto">
-        <small>© 2026 - Christopher Rodríguez Pérez | ITP Ingeniería en Sistemas </small>
+    <footer class="bg-dark text-white text-center py-1 mt-auto">
+        <small> 31/03/2026 - Cristopher Rodríguez Pérez | ITP Ingeniería en Sistemas</small>
     </footer>
 
     <script src="./assets/js/main.js"></script>
