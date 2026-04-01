@@ -6,6 +6,7 @@
     const uiScore = document.getElementById("ui-score");
     const btnStart = document.getElementById("btn-start");
 
+    // --- CARGA DE ACTIVOS ---
     const imgPlayer = new Image(); imgPlayer.src = './assets/img/auto-usuario.png';
     const imgPista = new Image(); imgPista.src = './assets/img/pista.jpg';
     const imgPremio = new Image(); imgPremio.src = './assets/img/premio-final.png';
@@ -19,15 +20,19 @@
 
     // --- VARIABLES DE ESTADO ---
     let level = 1, lives = 3, timeLeft = 90; 
-    let totalScore = 0; // Puntos acumulados globales
+    let totalScore = 0; 
     let gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0;
+
+    // Variables para el efecto de choque (Shake y Flash)
+    let shakeTime = 0; 
+    let isFlashing = false;
 
     const player = { x: 250, y: 0, w: 35, h: 75 };
 
     function initLevel() {
         enemies = [];
-        timeLeft = 90;
+        timeLeft = 90; // 1:30 min
         player.y = canvas.height - 110;
         updateUI();
         if (timerId) clearInterval(timerId);
@@ -46,17 +51,16 @@
         const secs = timeLeft % 60;
         uiTimer.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         uiLevel.innerText = level;
-        uiScore.innerText = totalScore; // Mostramos el acumulado
+        uiScore.innerText = totalScore; 
     }
 
     function processLevelEnd() {
-        // Calcular puntos del nivel actual: 3 vidas = 100, 2 = 67, 1 = 33
         let levelPoints = 0;
         if (lives === 3) levelPoints = 100;
         else if (lives === 2) levelPoints = 67;
         else if (lives === 1) levelPoints = 33;
 
-        totalScore += levelPoints; // SUMA ACUMULATIVA
+        totalScore += levelPoints; 
         updateUI();
 
         if (level < 8) {
@@ -68,15 +72,22 @@
         }
     }
 
+    // --- FUNCIÓN DE COLISIÓN MODIFICADA (Efecto Visual) ---
     function handleCollision() {
-        gameActive = false;
         lives--;
-        ctx.fillStyle = "rgba(255, 0, 0, 0.6)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Activar efectos visuales
+        shakeTime = 20; // Duración de la sacudida (en frames)
+        isFlashing = true; // Activar parpadeo rojo
+
+        // Pausar el juego momentáneamente para que se note el golpe
+        gameActive = false; 
+
+        // Reproducir sonido de choque aquí si tuvieras uno: soundCrash.play();
 
         setTimeout(() => {
+            isFlashing = false; // Apagar flash rojo
             if (lives > 0) {
-                // Al chocar, reinicia el nivel actual pero conserva las vidas restantes
                 initLevel();
                 gameActive = true;
                 animate();
@@ -84,7 +95,7 @@
                 alert(`GAME OVER. Te quedaste sin vidas en el Nivel ${level}.\nPuntaje final: ${totalScore}`);
                 location.reload(); 
             }
-        }, 500);
+        }, 600); // Tiempo que dura el flash rojo y la pausa
     }
 
     function spawnEnemy() {
@@ -94,17 +105,32 @@
                 x: lanes[Math.floor(Math.random() * 4)] - 20,
                 y: -100,
                 w: 30, h: 65,
-                speed: 7 + (level * 1.1),
+                speed: 7.5 + (level * 1.15), // Un poco más rápido
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
     }
 
+    // --- BUCLE DE ANIMACIÓN MODIFICADO (Efecto Shake) ---
     function animate() {
-        if (!gameActive) return;
+        // Ejecutar animate incluso si gameActive es false momentáneamente para el efecto de shake
+        if (!gameActive && shakeTime <= 0) return; 
         animationId = requestAnimationFrame(animate);
         
-        roadOffset += 9 + level;
+        ctx.save(); // Guardar estado limpio del canvas
+
+        // --- APLICAR EFECTO SHAKE (SACUDIDA) ---
+        if (shakeTime > 0) {
+            // Calculamos un desplazamiento aleatorio que disminuye con el tiempo
+            const shakeForce = shakeTime * 0.25; 
+            const offsetX = (Math.random() - 0.5) * shakeForce;
+            const offsetY = (Math.random() - 0.5) * shakeForce;
+            ctx.translate(offsetX, offsetY); // Movemos todo el canvas
+            shakeTime--; // Decrementar el tiempo de sacudida
+        }
+
+        // --- DIBUJAR JUEGO NORMAL ---
+        roadOffset += 10 + level; // Pista más rápida
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
@@ -114,17 +140,34 @@
 
         ctx.drawImage(imgPlayer, player.x - 22, player.y, 45, 85);
 
-        spawnEnemy();
-        enemies.forEach((en, index) => {
-            en.y += en.speed;
-            ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
+        // Si el juego está activo, actualizar enemigos
+        if (gameActive) {
+            spawnEnemy();
+            enemies.forEach((en, index) => {
+                en.y += en.speed;
+                ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
 
-            if (player.x - 15 < en.x + en.w && player.x + 15 > en.x &&
-                player.y + 10 < en.y + en.h && player.y + 70 > en.y) {
-                handleCollision();
-            }
-            if (en.y > canvas.height) enemies.splice(index, 1);
-        });
+                // COLISIÓN ULTRA-PRECISA
+                if (player.x - 12 < en.x + en.w && player.x + 12 > en.x &&
+                    player.y + 10 < en.y + en.h && player.y + 70 > en.y) {
+                    handleCollision();
+                }
+                if (en.y > canvas.height) enemies.splice(index, 1);
+            });
+        } else {
+            // Si está pausado por choque, dibujar enemigos quietos
+            enemies.forEach((en) => {
+                ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
+            });
+        }
+
+        // --- APLICAR FLASH ROJO (PARPADEO) ---
+        if (isFlashing) {
+            ctx.fillStyle = "rgba(255, 0, 0, 0.5)"; // Rojo semi-transparente
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        ctx.restore(); // Restaurar estado del canvas (quitar translate del shake)
     }
 
     function victory() {

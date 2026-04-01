@@ -33,9 +33,9 @@ body {
     box-shadow: 0 0 15px rgba(255,255,255,0.2);
 }
 
-.level-badge { border-color: #ff00ff; color: #ff00ff; }
+.level-badge { border-color: #ff009d; color: #ff009d; }
 .timer-badge { border-color: #00fbff; color: #00fbff; }
-.score-badge { border-color: #00ff00; color: #00ff00; }
+.score-badge { border-color: #ff0000; color: #ff0000; }
 
 .hud-label { font-size: 0.6rem; font-weight: bold; }
 .hud-value { font-size: 1.3rem; font-family: 'Arial Black', sans-serif; }
