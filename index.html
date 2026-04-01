@@ -11,15 +11,15 @@
 <body class="d-flex flex-column">
 
     <div class="hud-sidebar">
-        <div class="hud-item level-badge">
+        <div class="hud-item level-badge shadow">
             <span class="hud-label">NIVEL</span>
             <span id="ui-level" class="hud-value">1</span>
         </div>
-        <div class="hud-item timer-badge">
+        <div class="hud-item timer-badge shadow">
             <span class="hud-label">TIEMPO</span>
-            <span id="ui-timer" class="hud-value">01:30</span>
+            <span id="ui-timer" class="hud-value">01:10</span>
         </div>
-        <div class="hud-item score-badge">
+        <div class="hud-item score-badge shadow">
             <span id="ui-score" class="hud-value">0</span>
             <span class="hud-label">PTS TOTALES</span>
         </div>
@@ -27,7 +27,7 @@
 
     <nav class="navbar navbar-dark bg-dark shadow">
         <div class="container">
-            <a class="navbar-brand" href="#">ITP Nitro Racer</a>
+            <a class="navbar-brand" href="#">Nitro Racer</a>
             <span class="navbar-text text-white">Cristopher Rodríguez Pérez</span>
         </div>
     </nav>
@@ -35,14 +35,17 @@
     <main class="flex-grow-1 d-flex align-items-center justify-content-center p-2">
         <div class="glass-card p-2 shadow-lg text-center">
             
-            <button id="btn-start" class="btn btn-warning btn-lg w-100 mb-2 fw-bold pulse-animation">¡INICIAR CARRERA!</button>
+            <button id="btn-start" class="btn btn-warning btn-lg w-100 mb-2 fw-bold pulse-animation">
+                ¡INICIAR CARRERA!
+            </button>
 
             <canvas id="game-canvas"></canvas>
 
             <div class="instructions-panel mt-2">
                 <div class="alert alert-light py-1 px-3 small mb-0 text-start">
-                    <strong>SISTEMA ACUMULATIVO:</strong> Sobrevive los 8 niveles. 
-                    Tus puntos por vida se sumarán al final de cada nivel.
+                    <strong>GUÍA RÁPIDA:</strong> Esquiva obstáculos con el <b>Mouse</b>.<br>
+                    Sobrevive <b>1:10 min</b> por nivel. Las vidas se suman al puntaje final.<br>
+                    ¡Completa los 8 niveles para ganar el trofeo!
                 </div>
             </div>
         </div>

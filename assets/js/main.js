@@ -13,7 +13,7 @@
 
     const sonidoTrafico = new Audio('./assets/audio/traffic-passing.mp3');
     sonidoTrafico.loop = true;
-    sonidoTrafico.volume = 0.3; // Sonido ambiental más suave
+    sonidoTrafico.volume = 0.3;
 
     const sonidoChoque = new Audio('./assets/audio/choque.mp3');
     sonidoChoque.volume = 0.7;
@@ -31,7 +31,8 @@
     }
 
     // --- VARIABLES DE ESTADO ---
-    let level = 1, lives = 3, timeLeft = 90; 
+    let level = 1, lives = 3;
+    let timeLeft = 70; // AJUSTE: 1 minuto con 10 segundos
     let totalScore = 0, gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0, shakeTime = 0, isFlashing = false;
 
@@ -39,10 +40,11 @@
 
     function initLevel() {
         enemies = [];
-        timeLeft = 90;
+        timeLeft = 70; // Reiniciar a 1:10
         player.y = canvas.height - 110;
         updateUI();
         
+        // REGLA: El sonido persiste y se asegura de sonar al iniciar
         if (gameActive) {
             musicaFondo.play();
             sonidoTrafico.play();
@@ -68,15 +70,13 @@
     }
 
     function processLevelEnd() {
-        musicaFondo.pause();
-        sonidoTrafico.pause();
         let levelPoints = (lives === 3) ? 100 : (lives === 2) ? 67 : 33;
         totalScore += levelPoints;
         updateUI();
 
         if (level < 8) {
             level++;
-            alert(`¡Nivel ${level-1} superado!\nTotal Acumulado: ${totalScore} pts.`);
+            alert(`¡Nivel ${level-1} superado!\nAcumulado: ${totalScore} pts.`);
             initLevel();
         } else {
             victory();
@@ -87,13 +87,10 @@
         gameActive = false;
         lives--;
         
-        // Efectos de Audio de Choque
-        musicaFondo.pause();
-        sonidoTrafico.pause();
+        // AJUSTE: Solo disparamos el choque, la música y tráfico siguen
         sonidoChoque.currentTime = 0;
         sonidoChoque.play();
 
-        // Efectos Visuales
         shakeTime = 20; 
         isFlashing = true; 
 
@@ -104,6 +101,8 @@
                 gameActive = true;
                 animate();
             } else {
+                musicaFondo.pause();
+                sonidoTrafico.pause();
                 alert(`GAME OVER.\nPuntaje final: ${totalScore}`);
                 location.reload(); 
             }
@@ -111,13 +110,17 @@
     }
 
     function spawnEnemy() {
+        // Carriles cerrados para evitar el pasto
         const lanes = [canvas.width * 0.25, canvas.width * 0.42, canvas.width * 0.58, canvas.width * 0.75];
-        if (Math.random() < 0.045 + (level * 0.007)) {
+        
+        // AJUSTE: Probabilidad de aparición aumentada para más tráfico (0.05 base)
+        if (Math.random() < 0.05 + (level * 0.008)) {
             enemies.push({
                 x: lanes[Math.floor(Math.random() * 4)] - 20,
                 y: -100,
                 w: 30, h: 65,
-                speed: 7.5 + (level * 1.15),
+                // AJUSTE: Velocidad base aumentada a 8 para que se sienta rápido
+                speed: 8 + (level * 1.2), 
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
@@ -129,11 +132,12 @@
         
         ctx.save();
         if (shakeTime > 0) {
-            ctx.translate((Math.random() - 0.5) * shakeTime * 0.25, (Math.random() - 0.5) * shakeTime * 0.25);
+            ctx.translate((Math.random() - 0.5) * shakeTime * 0.3, (Math.random() - 0.5) * shakeTime * 0.3);
             shakeTime--;
         }
 
-        roadOffset += 10 + level;
+        // AJUSTE: Movimiento de pista más veloz (base 12)
+        roadOffset += 12 + level;
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
@@ -147,6 +151,8 @@
             enemies.forEach((en, index) => {
                 en.y += en.speed;
                 ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
+                
+                // Hitbox precisa
                 if (player.x - 15 < en.x + en.w && player.x + 15 > en.x &&
                     player.y + 10 < en.y + en.h && player.y + 70 > en.y) {
                     handleCollision();
@@ -158,7 +164,7 @@
         }
 
         if (isFlashing) {
-            ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+            ctx.fillStyle = "rgba(255, 0, 0, 0.4)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         ctx.restore();
@@ -175,7 +181,7 @@
         ctx.fillStyle = "gold";
         ctx.textAlign = "center";
         ctx.font = "bold 25px Arial";
-        ctx.fillText("¡CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 80);
+        ctx.fillText("¡ERES EL CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 80);
         ctx.font = "20px Arial";
         ctx.fillText(`PUNTAJE: ${totalScore} PTS`, canvas.width/2, canvas.height/2 + 115);
     }
@@ -183,8 +189,9 @@
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         let mX = e.clientX - rect.left;
-        if (mX < 110) mX = 110; 
-        if (mX > 390) mX = 390;
+        // Límites estrictos de la pista gris
+        if (mX < 115) mX = 115; 
+        if (mX > 385) mX = 385;
         player.x = mX;
     });
 
