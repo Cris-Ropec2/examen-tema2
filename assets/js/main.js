@@ -29,8 +29,8 @@
     let totalScore = 0, gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0, shakeTime = 0, isFlashing = false;
 
-    // --- ESCALA AUMENTADA PARA LAPTOP ---
-    const player = { x: 300, y: 0, w: 55, h: 100 }; // Autos más grandes
+    // Dimensiones visuales grandes (para laptop)
+    const player = { x: 300, y: 0, w: 55, h: 100 };
 
     function initLevel() {
         enemies = [];
@@ -64,7 +64,7 @@
         updateUI();
         if (level < 8) {
             level++;
-            alert(`¡Nivel superado! Acumulado: ${totalScore} pts.`);
+            alert(`¡Nivel superado! Total Acumulado: ${totalScore} pts.`);
             initLevel();
         } else { victory(); }
     }
@@ -91,13 +91,12 @@
     }
 
     function spawnEnemy() {
-        // Carriles ajustados al nuevo ancho (600px)
         const lanes = [canvas.width * 0.25, canvas.width * 0.42, canvas.width * 0.58, canvas.width * 0.75];
         if (Math.random() < 0.055 + (level * 0.008)) {
             enemies.push({
                 x: lanes[Math.floor(Math.random() * 4)] - 25,
                 y: -120, 
-                w: 50, h: 90, // Hitbox proporcional al tamaño visual
+                w: 50, h: 90, // Tamaño visual
                 speed: 9 + (level * 1.3), 
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
@@ -119,7 +118,6 @@
         ctx.fillStyle = "white"; ctx.font = "bold 24px Arial";
         ctx.fillText("VIDAS: " + "❤️".repeat(lives), 25, 45);
         
-        // Dibujar Auto Usuario más grande
         ctx.drawImage(imgPlayer, player.x - player.w/2, player.y, player.w, player.h);
 
         if (gameActive) {
@@ -128,9 +126,18 @@
                 en.y += en.speed;
                 ctx.drawImage(en.img, en.x, en.y, en.w, en.h);
                 
-                // Hitbox ajustada al nuevo tamaño
-                if (player.x - 20 < en.x + en.w && player.x + 20 > en.x &&
-                    player.y + 10 < en.y + en.h && player.y + 90 > en.y) { handleCollision(); }
+                // --- AJUSTE DE HITBOX (ZONA DE COLISIÓN) ---
+                // Definimos un margen interno para que la hitbox sea más pequeña que el auto visual.
+                const hitboxPaddingX = 15; // Reducimos 15px de cada lado (ancho)
+                const hitboxPaddingY = 10; // Reducimos 10px de arriba y abajo (alto)
+
+                // Lógica de colisión con hitbox reducida
+                if (player.x - 20 < en.x + en.w - hitboxPaddingX && // Derecha
+                    player.x + 20 > en.x + hitboxPaddingX && // Izquierda
+                    player.y + 10 < en.y + en.h - hitboxPaddingY && // Abajo
+                    player.y + 90 > en.y + hitboxPaddingY) { // Arriba
+                    handleCollision();
+                }
                 if (en.y > canvas.height) enemies.splice(index, 1);
             });
         } else { enemies.forEach(en => ctx.drawImage(en.img, en.x, en.y, en.w, en.h)); }
@@ -144,7 +151,7 @@
         ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(imgPremio, canvas.width/2 - 100, canvas.height/2 - 150, 200, 200);
         ctx.fillStyle = "gold"; ctx.textAlign = "center"; ctx.font = "bold 35px Arial";
-        ctx.fillText("¡CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 100);
+        ctx.fillText("¡COMPLETASTE EL JUEGO!", canvas.width/2, canvas.height/2 + 80);
     }
 
     function handleMove(e) {
@@ -153,7 +160,6 @@
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         let mX = clientX - rect.left;
         
-        // Límites actualizados para el ancho de 600px
         if (mX < 140) mX = 140; 
         if (mX > 460) mX = 460;
         player.x = mX;
@@ -165,7 +171,6 @@
     canvas.addEventListener('touchstart', handleMove, { passive: false });
 
     btnStart.addEventListener("click", () => {
-        // --- CANVAS MÁS GRANDE EN LAPTOP ---
         canvas.width = 600; 
         canvas.height = 800;
         btnStart.style.display = "none";
