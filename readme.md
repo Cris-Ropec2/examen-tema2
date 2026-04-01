@@ -1,4 +1,4 @@
-# Nitro Racer Pro 🏎️
+# Nitro Racer 🏎️
 
 **Autor:** Cristopher Rodríguez Pérez  
 **Institución:** Instituto Tecnológico de Pachuca (ITP)  
