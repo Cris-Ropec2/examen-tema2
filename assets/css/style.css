@@ -23,8 +23,8 @@ body {
 .hud-item {
     background: rgba(0, 0, 0, 0.85);
     border: 3px solid;
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
@@ -36,28 +36,28 @@ body {
 .timer-badge { border-color: #006aff; color: #006aff; }
 .score-badge { border-color: #ff0000; color: #ff0000; }
 
-.hud-label { font-size: 0.6rem; font-weight: bold; }
-.hud-value { font-size: 1.4rem; font-family: 'Arial Black', sans-serif; }
+.hud-label { font-size: 0.55rem; font-weight: bold; }
+.hud-value { font-size: 1.2rem; font-family: 'Arial Black', sans-serif; }
 
-/* TAMAÑO PARA LAPTOP (Ajuste para Footer Visible) */
+/* AJUSTE PARA PANTALLA DE LAPTOP Y VISIBILIDAD DE FOOTER */
 .glass-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     width: 95%;
-    max-width: 600px; /* Un poco más estrecho para centrar */
-    margin-left: 150px;
-    padding: 10px !important; /* Más compacto */
+    max-width: 580px; 
+    margin-left: 140px;
+    padding: 10px !important;
 }
 
 #game-canvas {
     background: #333;
-    border-radius: 15px;
+    border-radius: 12px;
     width: 100%;
-    /* CRÍTICO: Alto dinámico para asegurar que el footer no se corte */
-    height: calc(100vh - 180px); 
-    max-height: 700px; /* Límite para pantallas muy grandes */
+    /* Ajuste para que el footer no se corte: Restamos más espacio de la altura total */
+    height: calc(100vh - 220px); 
+    max-height: 600px;
     border: 3px solid rgba(255, 255, 255, 0.5);
     display: block;
 }
@@ -69,11 +69,17 @@ body {
     100% { transform: scale(1); }
 }
 
+footer {
+    position: relative;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
 /* RESPONSIVIDAD PARA CELULAR */
 @media (max-width: 768px) {
     .hud-sidebar { flex-direction: row; top: 65px; left: 0; width: 100%; justify-content: center; gap: 10px; transform: none; }
-    .hud-item { width: 75px; height: 75px; }
-    .hud-value { font-size: 1rem; }
+    .hud-item { width: 70px; height: 70px; }
+    .hud-value { font-size: 0.9rem; }
     .glass-card { margin-left: 0; margin-top: 60px; max-width: 95%; }
-    #game-canvas { height: calc(100vh - 200px); }
+    #game-canvas { height: calc(100vh - 240px); }
 }
