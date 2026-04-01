@@ -8,7 +8,7 @@ body {
     touch-action: none;
 }
 
-/* HUD Lateral Izquierdo */
+/* HUD Lateral Izquierdo (Mantenemos diseño neón) */
 .hud-sidebar {
     position: absolute;
     left: 20px;
@@ -48,16 +48,16 @@ body {
     width: 95%;
     max-width: 580px; 
     margin-left: 140px;
-    padding: 10px !important;
+    padding: 8px !important; /* Más compacto para liberar espacio vertical */
 }
 
 #game-canvas {
     background: #333;
     border-radius: 12px;
     width: 100%;
-    /* Ajuste para que el footer no se corte: Restamos más espacio de la altura total */
-    height: calc(100vh - 220px); 
-    max-height: 600px;
+    /* Ajuste para que el footer sea visible antes de iniciar */
+    height: calc(100vh - 250px); 
+    max-height: 550px; /* Reducción sutil del alto total */
     border: 3px solid rgba(255, 255, 255, 0.5);
     display: block;
 }
@@ -75,11 +75,31 @@ footer {
     background: rgba(0, 0, 0, 0.8) !important;
 }
 
-/* RESPONSIVIDAD PARA CELULAR */
+/* RESPONSIVIDAD PARA CELULAR (Solución al amontonamiento) */
 @media (max-width: 768px) {
-    .hud-sidebar { flex-direction: row; top: 65px; left: 0; width: 100%; justify-content: center; gap: 10px; transform: none; }
-    .hud-item { width: 70px; height: 70px; }
-    .hud-value { font-size: 0.9rem; }
-    .glass-card { margin-left: 0; margin-top: 60px; max-width: 95%; }
-    #game-canvas { height: calc(100vh - 240px); }
+    .hud-sidebar { 
+        flex-direction: row; 
+        top: 65px; 
+        left: 0; 
+        width: 100%; 
+        justify-content: center; 
+        gap: 8px; /* Gap más pequeño */
+        transform: none; 
+    }
+    .hud-item { 
+        width: 65px; /* Círculos más pequeños para que no choquen */
+        height: 65px; 
+        padding: 5px;
+    }
+    .hud-label { font-size: 0.5rem; }
+    .hud-value { font-size: 0.85rem; } /* Texto más pequeño */
+    
+    .glass-card { 
+        margin-left: 0; 
+        margin-top: 60px; /* Espacio para que el HUD no toque la card */
+        max-width: 95%; 
+    }
+    #game-canvas { 
+        height: calc(100vh - 280px); /* Canvas más pequeño en móvil para UI despejada */
+    }
 }

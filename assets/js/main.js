@@ -28,13 +28,13 @@
     let totalScore = 0, gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0, shakeTime = 0, isFlashing = false;
 
-    // Dimensiones para Laptop
-    const player = { x: 300, y: 0, w: 50, h: 90 };
+    // Dimensiones sutilmente reducidas para Laptop
+    const player = { x: 300, y: 0, w: 48, h: 88 };
 
     function initLevel() {
         enemies = [];
         timeLeft = 60;
-        player.y = canvas.height - 120;
+        player.y = canvas.height - 110; // Ajuste para el nuevo alto
         updateUI();
         if (gameActive) { musicaFondo.play(); sonidoTrafico.play(); }
 
@@ -63,7 +63,7 @@
         updateUI();
         if (level < 8) {
             level++;
-            alert(`¡Nivel superado! Acumulado: ${totalScore} pts.`);
+            alert(`¡Nivel superado! Total Acumulado: ${totalScore} pts.`);
             initLevel();
         } else { victory(); }
     }
@@ -93,9 +93,9 @@
         const lanes = [canvas.width * 0.25, canvas.width * 0.42, canvas.width * 0.58, canvas.width * 0.75];
         if (Math.random() < 0.055 + (level * 0.008)) {
             enemies.push({
-                x: lanes[Math.floor(Math.random() * 4)] - 22,
-                y: -110, 
-                w: 44, h: 85,
+                x: lanes[Math.floor(Math.random() * 4)] - 20,
+                y: -100, 
+                w: 42, h: 82,
                 speed: 9 + (level * 1.3), 
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
@@ -107,15 +107,15 @@
         animationId = requestAnimationFrame(animate);
         ctx.save();
         if (shakeTime > 0) {
-            ctx.translate((Math.random() - 0.5) * shakeTime * 0.4, (Math.random() - 0.5) * shakeTime * 0.4);
+            ctx.translate((Math.random() - 0.5) * shakeTime * 0.35, (Math.random() - 0.5) * shakeTime * 0.35);
             shakeTime--;
         }
         roadOffset += 14 + level;
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
-        ctx.fillStyle = "white"; ctx.font = "bold 20px Arial";
-        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 40);
+        ctx.fillStyle = "white"; ctx.font = "bold 18px Arial"; // Texto vidas sutilmente más pequeño
+        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 35);
         
         ctx.drawImage(imgPlayer, player.x - player.w/2, player.y, player.w, player.h);
 
@@ -125,14 +125,14 @@
                 en.y += en.speed;
                 ctx.drawImage(en.img, en.x, en.y, en.w, en.h);
                 
-                // --- HITBOX ULTRA PRECISA ---
-                const padX = 14; 
-                const padY = 8;
+                // Hitbox precisa (manteniendo la lógica del pad)
+                const padX = 13; 
+                const padY = 7;
 
-                if (player.x - 18 < en.x + en.w - padX && 
-                    player.x + 18 > en.x + padX && 
+                if (player.x - 16 < en.x + en.w - padX && 
+                    player.x + 16 > en.x + padX && 
                     player.y + 5 < en.y + en.h - padY && 
-                    player.y + 85 > en.y + padY) {
+                    player.y + 80 > en.y + padY) {
                     handleCollision();
                 }
                 if (en.y > canvas.height) enemies.splice(index, 1);
@@ -146,9 +146,9 @@
     function victory() {
         gameActive = false; musicaFondo.pause(); sonidoTrafico.pause();
         ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(imgPremio, canvas.width/2 - 80, canvas.height/2 - 120, 160, 160);
-        ctx.fillStyle = "gold"; ctx.textAlign = "center"; ctx.font = "bold 30px Arial";
-        ctx.fillText("¡COMPLETASTE EL JUEGO!", canvas.width/2, canvas.height/2 + 80);
+        ctx.drawImage(imgPremio, canvas.width/2 - 70, canvas.height/2 - 100, 140, 140);
+        ctx.fillStyle = "gold"; ctx.textAlign = "center"; ctx.font = "bold 28px Arial";
+        ctx.fillText("¡COMPLETASTE EL JUEGO!", canvas.width/2, canvas.height/2 + 70);
     }
 
     function handleMove(e) {
@@ -157,8 +157,8 @@
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         let mX = clientX - rect.left;
         
-        if (mX < 135) mX = 135; 
-        if (mX > 445) mX = 445;
+        if (mX < 130) mX = 130; // Ajuste para el nuevo ancho de 560px
+        if (mX > 430) mX = 430;
         player.x = mX;
         if (e.cancelable) e.preventDefault();
     }
@@ -168,8 +168,9 @@
     canvas.addEventListener('touchstart', handleMove, { passive: false });
 
     btnStart.addEventListener("click", () => {
-        canvas.width = 580; 
-        canvas.height = 750;
+        // Reducción sutil del canvas para liberar espacio vertical
+        canvas.width = 560; 
+        canvas.height = 720;
         btnStart.style.display = "none";
         gameActive = true; musicaFondo.play(); sonidoTrafico.play();
         totalScore = 0; level = 1; lives = 3;
