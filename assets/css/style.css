@@ -5,9 +5,9 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    touch-action: none; /* Bloquea gestos del navegador para que el juego fluya */
 }
 
-/* HUD Lateral Izquierdo */
 .hud-sidebar {
     position: absolute;
     left: 20px;
@@ -15,17 +15,15 @@ body {
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
     z-index: 10;
-    pointer-events: none;
 }
 
 .hud-item {
     background: rgba(0, 0, 0, 0.85);
     border: 3px solid;
-    padding: 12px;
-    width: 105px;
-    height: 105px;
+    width: 95px;
+    height: 95px;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
@@ -34,39 +32,51 @@ body {
 }
 
 .level-badge { border-color: #ff0073; color: #ff0073; }
-.timer-badge { border-color: #00aaff; color: #00aaff; }
+.timer-badge { border-color: #0095ff; color: #0095ff; }
 .score-badge { border-color: #ff0000; color: #ff0000; }
 
-.hud-label { font-size: 0.6rem; font-weight: bold; }
-.hud-value { font-size: 1.3rem; font-family: 'Arial Black', sans-serif; }
+.hud-label { font-size: 0.55rem; font-weight: bold; }
+.hud-value { font-size: 1.2rem; font-family: 'Arial Black', sans-serif; }
 
 .glass-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    margin-left: 130px; /* Espacio para no chocar con el HUD */
+    width: 92%;
+    max-width: 480px;
+    margin-left: 120px;
 }
 
 #game-canvas {
     background: #333;
     border-radius: 15px;
     width: 100%;
-    height: 55vh;
-    cursor: crosshair; 
+    height: 50vh;
     border: 3px solid rgba(255, 255, 255, 0.5);
 }
 
-.pulse-animation { animation: pulse 1.5s infinite; }
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-
+/* RESPONSIVIDAD PARA CELULAR */
 @media (max-width: 768px) {
-    .hud-sidebar { flex-direction: row; top: 80px; left: 0; width: 100%; justify-content: space-around; transform: none; }
-    .glass-card { margin-left: 0; margin-top: 80px; }
+    .hud-sidebar {
+        flex-direction: row;
+        top: 65px; /* Bajamos un poco para que no pegue con la URL */
+        left: 0;
+        width: 100%;
+        justify-content: center;
+        gap: 10px;
+        transform: none;
+    }
+    .hud-item {
+        width: 75px; /* Círculos más pequeños en móvil */
+        height: 75px;
+    }
+    .hud-value { font-size: 1rem; }
+    .glass-card { 
+        margin-left: 0; 
+        margin-top: 60px; /* Espacio para que el HUD no tape el botón */
+    }
+    #game-canvas {
+        height: 45vh;
+    }
 }

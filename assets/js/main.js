@@ -1,3 +1,4 @@
+
 (() => {
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
@@ -6,7 +7,6 @@
     const uiScore = document.getElementById("ui-score");
     const btnStart = document.getElementById("btn-start");
 
-    // --- AUDIO ---
     const musicaFondo = new Audio('./assets/audio/musica_fondo.mp3');
     musicaFondo.loop = true; musicaFondo.volume = 0.4;
     const sonidoTrafico = new Audio('./assets/audio/traffic-passing.mp3');
@@ -14,7 +14,6 @@
     const sonidoChoque = new Audio('./assets/audio/choque.mp3');
     sonidoChoque.volume = 0.7;
 
-    // --- ACTIVOS ---
     const imgPlayer = new Image(); imgPlayer.src = './assets/img/auto-usuario.png';
     const imgPista = new Image(); imgPista.src = './assets/img/pista.jpg';
     const imgPremio = new Image(); imgPremio.src = './assets/img/premio-final.png';
@@ -25,8 +24,7 @@
         enemyImages.push(img);
     }
 
-    // --- ESTADO ---
-    let level = 1, lives = 3, timeLeft = 60; // AJUSTE: 60 segundos
+    let level = 1, lives = 3, timeLeft = 60;
     let totalScore = 0, gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0, shakeTime = 0, isFlashing = false;
 
@@ -34,7 +32,7 @@
 
     function initLevel() {
         enemies = [];
-        timeLeft = 60; // Reiniciar a 1 minuto
+        timeLeft = 60;
         player.y = canvas.height - 110;
         updateUI();
         if (gameActive) { musicaFondo.play(); sonidoTrafico.play(); }
@@ -64,7 +62,7 @@
         updateUI();
         if (level < 8) {
             level++;
-            alert(`¡Nivel superado! Total Acumulado: ${totalScore} pts.`);
+            alert(`¡Nivel superado! Acumulado: ${totalScore} pts.`);
             initLevel();
         } else { victory(); }
     }
@@ -84,7 +82,7 @@
                 animate();
             } else {
                 musicaFondo.pause(); sonidoTrafico.pause();
-                alert(`GAME OVER. Puntaje final: ${totalScore}`);
+                alert(`GAME OVER.\nPuntaje final: ${totalScore}`);
                 location.reload(); 
             }
         }, 600);
@@ -92,11 +90,11 @@
 
     function spawnEnemy() {
         const lanes = [canvas.width * 0.25, canvas.width * 0.42, canvas.width * 0.58, canvas.width * 0.75];
-        if (Math.random() < 0.05 + (level * 0.008)) {
+        if (Math.random() < 0.055 + (level * 0.008)) {
             enemies.push({
                 x: lanes[Math.floor(Math.random() * 4)] - 18,
                 y: -100, w: 30, h: 65,
-                speed: 8 + (level * 1.2), 
+                speed: 8.5 + (level * 1.3), 
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
@@ -138,15 +136,28 @@
         ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(imgPremio, canvas.width/2 - 75, canvas.height/2 - 100, 150, 150);
         ctx.fillStyle = "gold"; ctx.textAlign = "center"; ctx.font = "bold 25px Arial";
-        ctx.fillText("¡COMPLETASTE EL JUEGO!", canvas.width/2, canvas.height/2 + 80);
+        ctx.fillText("¡CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 80);
     }
 
-    canvas.addEventListener('mousemove', (e) => {
+    // FUNCIÓN UNIFICADA DE MOVIMIENTO (Mouse + Touch)
+    function handleMove(e) {
+        if (!gameActive) return;
         const rect = canvas.getBoundingClientRect();
-        let mX = e.clientX - rect.left;
-        if (mX < 115) mX = 115; if (mX > 385) mX = 385;
+        // Detectar si es touch o mouse
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        
+        let mX = clientX - rect.left;
+        if (mX < 115) mX = 115; 
+        if (mX > 385) mX = 385;
         player.x = mX;
-    });
+        
+        // Evita que el scroll del celular interfiera
+        if (e.cancelable) e.preventDefault();
+    }
+
+    canvas.addEventListener('mousemove', handleMove);
+    canvas.addEventListener('touchmove', handleMove, { passive: false });
+    canvas.addEventListener('touchstart', handleMove, { passive: false });
 
     btnStart.addEventListener("click", () => {
         canvas.width = 500; canvas.height = 700;
