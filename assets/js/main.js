@@ -6,7 +6,19 @@
     const uiScore = document.getElementById("ui-score");
     const btnStart = document.getElementById("btn-start");
 
-    // --- CARGA DE ACTIVOS ---
+    // --- CONFIGURACIÓN DE AUDIO ---
+    const musicaFondo = new Audio('./assets/audio/musica_fondo.mp3');
+    musicaFondo.loop = true;
+    musicaFondo.volume = 0.4;
+
+    const sonidoTrafico = new Audio('./assets/audio/traffic-passing.mp3');
+    sonidoTrafico.loop = true;
+    sonidoTrafico.volume = 0.3; // Sonido ambiental más suave
+
+    const sonidoChoque = new Audio('./assets/audio/choque.mp3');
+    sonidoChoque.volume = 0.7;
+
+    // --- CARGA DE IMÁGENES ---
     const imgPlayer = new Image(); imgPlayer.src = './assets/img/auto-usuario.png';
     const imgPista = new Image(); imgPista.src = './assets/img/pista.jpg';
     const imgPremio = new Image(); imgPremio.src = './assets/img/premio-final.png';
@@ -20,21 +32,22 @@
 
     // --- VARIABLES DE ESTADO ---
     let level = 1, lives = 3, timeLeft = 90; 
-    let totalScore = 0; 
-    let gameActive = false, animationId, timerId;
-    let enemies = [], roadOffset = 0;
-
-    // Variables para el efecto de choque (Shake y Flash)
-    let shakeTime = 0; 
-    let isFlashing = false;
+    let totalScore = 0, gameActive = false, animationId, timerId;
+    let enemies = [], roadOffset = 0, shakeTime = 0, isFlashing = false;
 
     const player = { x: 250, y: 0, w: 35, h: 75 };
 
     function initLevel() {
         enemies = [];
-        timeLeft = 90; // 1:30 min
+        timeLeft = 90;
         player.y = canvas.height - 110;
         updateUI();
+        
+        if (gameActive) {
+            musicaFondo.play();
+            sonidoTrafico.play();
+        }
+
         if (timerId) clearInterval(timerId);
         timerId = setInterval(() => {
             if (timeLeft > 0 && gameActive) {
@@ -55,47 +68,46 @@
     }
 
     function processLevelEnd() {
-        let levelPoints = 0;
-        if (lives === 3) levelPoints = 100;
-        else if (lives === 2) levelPoints = 67;
-        else if (lives === 1) levelPoints = 33;
-
-        totalScore += levelPoints; 
+        musicaFondo.pause();
+        sonidoTrafico.pause();
+        let levelPoints = (lives === 3) ? 100 : (lives === 2) ? 67 : 33;
+        totalScore += levelPoints;
         updateUI();
 
         if (level < 8) {
             level++;
-            alert(`¡Nivel ${level-1} superado! Puntos obtenidos: ${levelPoints}. Total: ${totalScore}`);
+            alert(`¡Nivel ${level-1} superado!\nTotal Acumulado: ${totalScore} pts.`);
             initLevel();
         } else {
             victory();
         }
     }
 
-    // --- FUNCIÓN DE COLISIÓN MODIFICADA (Efecto Visual) ---
     function handleCollision() {
+        gameActive = false;
         lives--;
         
-        // Activar efectos visuales
-        shakeTime = 20; // Duración de la sacudida (en frames)
-        isFlashing = true; // Activar parpadeo rojo
+        // Efectos de Audio de Choque
+        musicaFondo.pause();
+        sonidoTrafico.pause();
+        sonidoChoque.currentTime = 0;
+        sonidoChoque.play();
 
-        // Pausar el juego momentáneamente para que se note el golpe
-        gameActive = false; 
-
-        // Reproducir sonido de choque aquí si tuvieras uno: soundCrash.play();
+        // Efectos Visuales
+        shakeTime = 20; 
+        isFlashing = true; 
 
         setTimeout(() => {
-            isFlashing = false; // Apagar flash rojo
+            isFlashing = false; 
             if (lives > 0) {
                 initLevel();
                 gameActive = true;
                 animate();
             } else {
-                alert(`GAME OVER. Te quedaste sin vidas en el Nivel ${level}.\nPuntaje final: ${totalScore}`);
+                alert(`GAME OVER.\nPuntaje final: ${totalScore}`);
                 location.reload(); 
             }
-        }, 600); // Tiempo que dura el flash rojo y la pausa
+        }, 600);
     }
 
     function spawnEnemy() {
@@ -105,73 +117,57 @@
                 x: lanes[Math.floor(Math.random() * 4)] - 20,
                 y: -100,
                 w: 30, h: 65,
-                speed: 7.5 + (level * 1.15), // Un poco más rápido
+                speed: 7.5 + (level * 1.15),
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
     }
 
-    // --- BUCLE DE ANIMACIÓN MODIFICADO (Efecto Shake) ---
     function animate() {
-        // Ejecutar animate incluso si gameActive es false momentáneamente para el efecto de shake
         if (!gameActive && shakeTime <= 0) return; 
         animationId = requestAnimationFrame(animate);
         
-        ctx.save(); // Guardar estado limpio del canvas
-
-        // --- APLICAR EFECTO SHAKE (SACUDIDA) ---
+        ctx.save();
         if (shakeTime > 0) {
-            // Calculamos un desplazamiento aleatorio que disminuye con el tiempo
-            const shakeForce = shakeTime * 0.25; 
-            const offsetX = (Math.random() - 0.5) * shakeForce;
-            const offsetY = (Math.random() - 0.5) * shakeForce;
-            ctx.translate(offsetX, offsetY); // Movemos todo el canvas
-            shakeTime--; // Decrementar el tiempo de sacudida
+            ctx.translate((Math.random() - 0.5) * shakeTime * 0.25, (Math.random() - 0.5) * shakeTime * 0.25);
+            shakeTime--;
         }
 
-        // --- DIBUJAR JUEGO NORMAL ---
-        roadOffset += 10 + level; // Pista más rápida
+        roadOffset += 10 + level;
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
         ctx.fillStyle = "white";
         ctx.font = "bold 20px Arial";
         ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 35);
-
         ctx.drawImage(imgPlayer, player.x - 22, player.y, 45, 85);
 
-        // Si el juego está activo, actualizar enemigos
         if (gameActive) {
             spawnEnemy();
             enemies.forEach((en, index) => {
                 en.y += en.speed;
                 ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
-
-                // COLISIÓN ULTRA-PRECISA
-                if (player.x - 12 < en.x + en.w && player.x + 12 > en.x &&
+                if (player.x - 15 < en.x + en.w && player.x + 15 > en.x &&
                     player.y + 10 < en.y + en.h && player.y + 70 > en.y) {
                     handleCollision();
                 }
                 if (en.y > canvas.height) enemies.splice(index, 1);
             });
         } else {
-            // Si está pausado por choque, dibujar enemigos quietos
-            enemies.forEach((en) => {
-                ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
-            });
+            enemies.forEach(en => ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85));
         }
 
-        // --- APLICAR FLASH ROJO (PARPADEO) ---
         if (isFlashing) {
-            ctx.fillStyle = "rgba(255, 0, 0, 0.5)"; // Rojo semi-transparente
+            ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
-
-        ctx.restore(); // Restaurar estado del canvas (quitar translate del shake)
+        ctx.restore();
     }
 
     function victory() {
         gameActive = false;
+        musicaFondo.pause();
+        sonidoTrafico.pause();
         clearInterval(timerId);
         ctx.fillStyle = "rgba(0,0,0,0.85)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -179,9 +175,9 @@
         ctx.fillStyle = "gold";
         ctx.textAlign = "center";
         ctx.font = "bold 25px Arial";
-        ctx.fillText("¡ERES EL CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 80);
+        ctx.fillText("¡CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 80);
         ctx.font = "20px Arial";
-        ctx.fillText(`PUNTAJE TOTAL: ${totalScore} PTS`, canvas.width/2, canvas.height/2 + 115);
+        ctx.fillText(`PUNTAJE: ${totalScore} PTS`, canvas.width/2, canvas.height/2 + 115);
     }
 
     canvas.addEventListener('mousemove', (e) => {
@@ -197,9 +193,9 @@
         canvas.height = 700;
         btnStart.style.display = "none";
         gameActive = true;
-        totalScore = 0;
-        level = 1;
-        lives = 3;
+        musicaFondo.play();
+        sonidoTrafico.play();
+        totalScore = 0; level = 1; lives = 3;
         initLevel();
         animate();
     });
