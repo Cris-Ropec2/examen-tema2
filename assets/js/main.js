@@ -7,6 +7,7 @@
     const uiScore = document.getElementById("ui-score");
     const btnStart = document.getElementById("btn-start");
 
+    // Audio y Activos (Se mantienen igual)
     const musicaFondo = new Audio('./assets/audio/musica_fondo.mp3');
     musicaFondo.loop = true; musicaFondo.volume = 0.4;
     const sonidoTrafico = new Audio('./assets/audio/traffic-passing.mp3');
@@ -28,12 +29,13 @@
     let totalScore = 0, gameActive = false, animationId, timerId;
     let enemies = [], roadOffset = 0, shakeTime = 0, isFlashing = false;
 
-    const player = { x: 250, y: 0, w: 35, h: 75 };
+    // --- ESCALA AUMENTADA PARA LAPTOP ---
+    const player = { x: 300, y: 0, w: 55, h: 100 }; // Autos más grandes
 
     function initLevel() {
         enemies = [];
         timeLeft = 60;
-        player.y = canvas.height - 110;
+        player.y = canvas.height - 130;
         updateUI();
         if (gameActive) { musicaFondo.play(); sonidoTrafico.play(); }
 
@@ -72,7 +74,7 @@
         lives--;
         sonidoChoque.currentTime = 0;
         sonidoChoque.play();
-        shakeTime = 20; isFlashing = true; 
+        shakeTime = 25; isFlashing = true; 
 
         setTimeout(() => {
             isFlashing = false; 
@@ -89,12 +91,14 @@
     }
 
     function spawnEnemy() {
+        // Carriles ajustados al nuevo ancho (600px)
         const lanes = [canvas.width * 0.25, canvas.width * 0.42, canvas.width * 0.58, canvas.width * 0.75];
         if (Math.random() < 0.055 + (level * 0.008)) {
             enemies.push({
-                x: lanes[Math.floor(Math.random() * 4)] - 18,
-                y: -100, w: 30, h: 65,
-                speed: 8.5 + (level * 1.3), 
+                x: lanes[Math.floor(Math.random() * 4)] - 25,
+                y: -120, 
+                w: 50, h: 90, // Hitbox proporcional al tamaño visual
+                speed: 9 + (level * 1.3), 
                 img: enemyImages[Math.floor(Math.random() * 4)]
             });
         }
@@ -105,27 +109,31 @@
         animationId = requestAnimationFrame(animate);
         ctx.save();
         if (shakeTime > 0) {
-            ctx.translate((Math.random() - 0.5) * shakeTime * 0.3, (Math.random() - 0.5) * shakeTime * 0.3);
+            ctx.translate((Math.random() - 0.5) * shakeTime * 0.4, (Math.random() - 0.5) * shakeTime * 0.4);
             shakeTime--;
         }
-        roadOffset += 12 + level;
+        roadOffset += 14 + level;
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height - canvas.height, canvas.width, canvas.height);
         ctx.drawImage(imgPista, 0, roadOffset % canvas.height, canvas.width, canvas.height);
 
-        ctx.fillStyle = "white"; ctx.font = "bold 20px Arial";
-        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 20, 35);
-        ctx.drawImage(imgPlayer, player.x - 22, player.y, 45, 85);
+        ctx.fillStyle = "white"; ctx.font = "bold 24px Arial";
+        ctx.fillText("VIDAS: " + "❤️".repeat(lives), 25, 45);
+        
+        // Dibujar Auto Usuario más grande
+        ctx.drawImage(imgPlayer, player.x - player.w/2, player.y, player.w, player.h);
 
         if (gameActive) {
             spawnEnemy();
             enemies.forEach((en, index) => {
                 en.y += en.speed;
-                ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85);
-                if (player.x - 15 < en.x + en.w && player.x + 15 > en.x &&
-                    player.y + 10 < en.y + en.h && player.y + 70 > en.y) { handleCollision(); }
+                ctx.drawImage(en.img, en.x, en.y, en.w, en.h);
+                
+                // Hitbox ajustada al nuevo tamaño
+                if (player.x - 20 < en.x + en.w && player.x + 20 > en.x &&
+                    player.y + 10 < en.y + en.h && player.y + 90 > en.y) { handleCollision(); }
                 if (en.y > canvas.height) enemies.splice(index, 1);
             });
-        } else { enemies.forEach(en => ctx.drawImage(en.img, en.x - 7, en.y - 12, 45, 85)); }
+        } else { enemies.forEach(en => ctx.drawImage(en.img, en.x, en.y, en.w, en.h)); }
 
         if (isFlashing) { ctx.fillStyle = "rgba(255, 0, 0, 0.4)"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
         ctx.restore();
@@ -134,24 +142,21 @@
     function victory() {
         gameActive = false; musicaFondo.pause(); sonidoTrafico.pause();
         ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(imgPremio, canvas.width/2 - 75, canvas.height/2 - 100, 150, 150);
-        ctx.fillStyle = "gold"; ctx.textAlign = "center"; ctx.font = "bold 25px Arial";
-        ctx.fillText("¡CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 80);
+        ctx.drawImage(imgPremio, canvas.width/2 - 100, canvas.height/2 - 150, 200, 200);
+        ctx.fillStyle = "gold"; ctx.textAlign = "center"; ctx.font = "bold 35px Arial";
+        ctx.fillText("¡CAMPEÓN FINAL!", canvas.width/2, canvas.height/2 + 100);
     }
 
-    // FUNCIÓN UNIFICADA DE MOVIMIENTO (Mouse + Touch)
     function handleMove(e) {
         if (!gameActive) return;
         const rect = canvas.getBoundingClientRect();
-        // Detectar si es touch o mouse
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        
         let mX = clientX - rect.left;
-        if (mX < 115) mX = 115; 
-        if (mX > 385) mX = 385;
-        player.x = mX;
         
-        // Evita que el scroll del celular interfiera
+        // Límites actualizados para el ancho de 600px
+        if (mX < 140) mX = 140; 
+        if (mX > 460) mX = 460;
+        player.x = mX;
         if (e.cancelable) e.preventDefault();
     }
 
@@ -160,7 +165,9 @@
     canvas.addEventListener('touchstart', handleMove, { passive: false });
 
     btnStart.addEventListener("click", () => {
-        canvas.width = 500; canvas.height = 700;
+        // --- CANVAS MÁS GRANDE EN LAPTOP ---
+        canvas.width = 600; 
+        canvas.height = 800;
         btnStart.style.display = "none";
         gameActive = true; musicaFondo.play(); sonidoTrafico.play();
         totalScore = 0; level = 1; lives = 3;
